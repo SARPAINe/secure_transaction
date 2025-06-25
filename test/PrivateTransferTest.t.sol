@@ -91,7 +91,7 @@ contract PrivateTransferTest is Test, HelperConfig {
         // Withdraw the tokens
         address recipient = 0xD9eC26211A707f9F44350750A213feD1f4D6617B; // Use a different address for recipient
         uint256 recipientBalance = tetherToken.balanceOf(recipient);
-        privateTransfer.withdraw(secret, recipient, amount);
+        privateTransfer.withdraw(secret, recipient);
         uint256 recipientBalanceAfter = tetherToken.balanceOf(recipient);
         console.log(
             "Recipient balance after withdrawal:",

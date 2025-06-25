@@ -7,7 +7,13 @@ import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {IERC20} from "../src/IERC20.sol";
 
-contract Deposit is Script {
+contract Config {
+    address public tokenAddress = 0x3a9DAB65fa437E31ce47FcC80EB9a0d9A170B931;
+    address public privateTransferAddress =
+        0x80321265E087D94e43619A62b8E78A9e4af8C083;
+}
+
+contract Deposit is Script, Config {
     MinimalERC20 public minimalERC20;
     PrivateTransfer public privateTransfer;
 
@@ -15,43 +21,33 @@ contract Deposit is Script {
         vm.startBroadcast();
 
         // Assuming the contracts are already deployed
-        minimalERC20 = MinimalERC20(0xD0D10Ee4D177d402dC1d48C99633b8A055297f73);
-        privateTransfer = PrivateTransfer(
-            0xfDE4F040b09fe47f7E5FA4E8948167907B0243Cf
-        );
+        minimalERC20 = MinimalERC20(tokenAddress);
+        privateTransfer = PrivateTransfer(privateTransferAddress);
 
         // Example interaction: Deposit tokens
         bytes32 secret = keccak256(abi.encodePacked("secret2"));
         bytes32 commitment = keccak256(abi.encodePacked(secret));
         uint256 amount = 100 * 10 ** 18; // 100 tokens with 18 decimals
-        minimalERC20.approve(address(privateTransfer), amount);
+        minimalERC20.approve(privateTransferAddress, amount);
         privateTransfer.deposit(commitment, amount);
-
-        // Example interaction: Withdraw tokens
-        // bytes32 secret = "secret";
-        // address recipient = msg.sender;
-        // privateTransfer.withdraw(secret, recipient, amount);
 
         vm.stopBroadcast();
     }
 }
 
-contract Withdraw is Script {
+contract Withdraw is Script, Config {
     PrivateTransfer public privateTransfer;
 
     function run() public {
         vm.startBroadcast();
 
         // Assuming the contract is already deployed
-        privateTransfer = PrivateTransfer(
-            0xfDE4F040b09fe47f7E5FA4E8948167907B0243Cf
-        );
+        privateTransfer = PrivateTransfer(privateTransferAddress);
 
         // Example interaction: Withdraw tokens
         bytes32 secret = keccak256(abi.encodePacked("secret2"));
         address recipient = 0x932999C473DEcAFd13722cEB4141239E2753E379;
-        uint256 amount = 100 * 10 ** 18; // 100 tokens with 18 decimals
-        privateTransfer.withdraw(secret, recipient, amount);
+        privateTransfer.withdraw(secret, recipient);
 
         vm.stopBroadcast();
     }
@@ -65,9 +61,9 @@ contract FullTransaction is Script {
         vm.startBroadcast();
 
         // Assuming the contracts are already deployed
-        minimalERC20 = MinimalERC20(0xD0D10Ee4D177d402dC1d48C99633b8A055297f73);
+        minimalERC20 = MinimalERC20(0xEED7bb91770cE1F6B43c662819BE5E8E11e90Fc2);
         privateTransfer = PrivateTransfer(
-            0xfDE4F040b09fe47f7E5FA4E8948167907B0243Cf
+            0xa0a90e5dBea58d8cAA32C5aa94c03ec73da6E024
         );
 
         // Example interaction: Deposit tokens
@@ -79,7 +75,7 @@ contract FullTransaction is Script {
 
         // Example interaction: Withdraw tokens
         address recipient = 0x932999C473DEcAFd13722cEB4141239E2753E379;
-        privateTransfer.withdraw(secret, recipient, amount);
+        privateTransfer.withdraw(secret, recipient);
 
         vm.stopBroadcast();
     }

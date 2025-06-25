@@ -15,6 +15,7 @@ contract PrivateTransfer {
     IERC20 public immutable token;
 
     mapping(bytes32 => bool) public commitments;
+    mapping(bytes32 => uint256) private amounts;
     mapping(bytes32 => bool) public nullifiers;
 
     event Deposit(bytes32 indexed commitment);
@@ -35,6 +36,7 @@ contract PrivateTransfer {
 
         // Save commitment
         commitments[commitment] = true;
+        amounts[commitment] = amount;
 
         emit Deposit(commitment);
     }
@@ -42,16 +44,18 @@ contract PrivateTransfer {
     /// @notice Withdraw tokens by revealing the secret
     /// @param secret the original secret (e.g., salt + recipient address + amount)
     /// @param to the address to receive the funds
-    /// @param amount the same amount that was deposited
-    function withdraw(bytes32 secret, address to, uint amount) external {
+    function withdraw(bytes32 secret, address to) external {
         bytes32 commitment = keccak256(abi.encodePacked(secret));
         require(commitments[commitment], "Invalid commitment");
 
-        bytes32 nullifier = keccak256(abi.encodePacked(secret, to, amount));
+        bytes32 nullifier = keccak256(
+            abi.encodePacked(secret, to, amounts[commitment])
+        );
         require(!nullifiers[nullifier], "Already withdrawn");
 
         // Mark nullifier as used
         nullifiers[nullifier] = true;
+        uint256 amount = amounts[commitment];
 
         // Send tokens
         token.transfer(to, amount);
